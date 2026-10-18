@@ -307,8 +307,8 @@ apiRouter.post('/appointments', async (req: Request, res: Response) => {
       additionalInfo: 'Please arrive 5-10 minutes before your slot. Institute location: First Floor, Plot No. 2, Main Road, opp. Gupta Market, Najafgarh.',
     });
 
-    // Also attempt sync to Supabase bookings table if created
-    saveBookingToSupabase({
+    // Also sync to Supabase (saves into enquiries and bookings table)
+    const supabaseBookingResult = await saveBookingToSupabase({
       booking_reference: bookingRef,
       customer_name: customerName,
       customer_phone: customerPhone,
@@ -319,7 +319,7 @@ apiRouter.post('/appointments', async (req: Request, res: Response) => {
       course_of_interest: courseOfInterest || null,
       message: message || null,
       status: 'confirmed',
-    }).catch(err => console.warn('Supabase booking sync notice:', err));
+    });
 
     res.status(201).json({
       success: true,
@@ -329,6 +329,7 @@ apiRouter.post('/appointments', async (req: Request, res: Response) => {
       appointmentTime: formatted12h,
       appointmentType: aptType.name,
       customerName,
+      supabaseSynced: supabaseBookingResult.success,
       message: 'Your appointment has been confirmed!',
     });
   } catch (err: any) {
